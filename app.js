@@ -171,7 +171,7 @@ app.get('/api/movies',(req, res) => {
 
                   //POST request : adding something to csv array
                   //1. add object to array
-                  // 2.return the updated array
-                  //Jordon 
+                  //2. return the updated array
+                  //Jordan 
                   //
 
