@@ -153,3 +153,25 @@ app.get('/api/movies',(req, res) => {
                     
                     });           
 
+
+
+                  //delete from the array  not the csv file
+                  //1. finding specific object
+                  //2. update object 
+                  //3. update the array
+                  //JOHN Claimed 
+                  //-research how to make branches
+
+                  //put request updating the array 
+                  //1. finding specific object
+                  //2. update object 
+                  //3. update the array
+                  //Leena
+                  //
+
+                  //POST request : adding something to csv array
+                  //1. add object to array
+                  // 2.return the updated array
+                  //Jordon 
+                  //
+
