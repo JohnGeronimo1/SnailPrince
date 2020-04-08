@@ -3,8 +3,8 @@ const express = require('express');
 const app = express();  //represents application has GET, POST, PUT, DELETE
 const papa = require('papaparse');
 const fs = require("fs");
-//const file = fs.readFileSync('Oscar_Winner_data_csv.csv',"utf8");
-const file = fs.readFileSync('test.csv',"utf8");    //USE THIS ONLY FOR TESTING
+const file = fs.readFileSync('Oscar_Winner_data_csv.csv',"utf8");
+//const file = fs.readFileSync('test.csv',"utf8");    //USE THIS ONLY FOR TESTING
 
 /*
 Before running this code you must install joi and express
@@ -162,9 +162,17 @@ app.get('/api/movies',(req, res) => {
                         res.send(moviecategory);   //if you find the year then send it to the user
                     
                     });           
-
-
-                
+                //if multiple entities have the same name it will delete one at a time
+                app.delete('/api/movies/entities/:entity',(req,res)=>{
+                    const entit  = csvarray.find( c=> c.entity=== req.params.entity);
+                    if(!entit) res.status(404).send('incorrect');
+                    var i;
+                    for(i = 0; i <csvarray.length; i++){
+                        const index = csvarray.indexOf(entit);
+                        csvarray.splice(index,1);    
+                    }
+                    res.send(entit);
+                });
                   //delete from the array  not the csv file
                   //1. finding specific object
                   //2. update object 
