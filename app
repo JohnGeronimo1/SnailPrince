@@ -39,7 +39,8 @@ const csvarray = csvrows.data.map ( row => {
     const {year,category,winner,entity } = row;
     return {year,category,winner,entity}
 })
-
+const list2 =[];
+const o = 0;
 //test that they printed correctly
 /*for(var i =0; i< csvarray.length; i++)
 {
@@ -58,7 +59,37 @@ function findElementArrayNumber(arr, typecategory, typevalue) {
 
        return list;
 }
-
+function singletonResponse(arr){
+    //create one instance only
+    //send json reponse
+    //defines getiInstance()
+    //sample
+     //var Singleton = (function () {
+//    var instance;
+ 
+//    function createInstance() {
+//        var object = new Object("I am the instance");
+//        return object;
+//    }
+ 
+//   return {
+//        getInstance: function () {
+//            if (!instance) {
+//                instance = createInstance();
+//            }
+//            return instance;
+//        }
+//    };
+//})();
+ 
+//function run() {
+ 
+//    var instance1 = Singleton.getInstance();
+//    var instance2 = Singleton.getInstance();
+ 
+//   alert("Same instance? " + (instance1 === instance2));  
+//}
+}
 //can be used to locate strings within the csv arary/file
 function findElementArrayString(arr, typecategory, typevalue) {
     var list2 =[];
@@ -71,17 +102,8 @@ function findElementArrayString(arr, typecategory, typevalue) {
        return list2;
 }
 
-function DELETE(arr, typecategory, typevalue) {
-    var list3 =[];
-    var inner=0;
-    for (var i=0; i < arr.length; i++){
-        if ((arr[i][typecategory]).localeCompare(typevalue) == 0){ 
-            list[i] = arr[i+1]; //skips the value found at i and increments to skip the next number
-            i++;
-        }
-    }
-    return list;
-}
+
+
 
 //used to return all the elements in the csv file (Its a collection endpoint)
 app.get('/api/movies',(req, res) => {
@@ -105,27 +127,38 @@ app.get('/api/movies',(req, res) => {
     
         if(!movieyear)  //404 not found
            { res.status(404).send('The Movie year was not found'); }  //if year is not in array 404 display msg
-
             res.send(movieyear);   //if you find the year then send it to the user
-        
         });
-
-        app.get('/api/movies/categories/:category',(req,res)=>{
+        app.get('/api/movies/categories/:category',(req,res, next)=>{
             // returns an array of all the movies that fit this year
             //FUTURE IDEA: Check that is has also won an ocscar!
-            var moviecategory = findElementArrayString(csvarray, "category", req.params.category);
-    
-            //TEST ONLY DO NOT INCLUDE IN FINAL CODE //////////////////
-            console.log("\n  api/movies/categories/:category  \n");
-             //TEST ONLY DO NOT INCLUDE IN FINAL CODE ///////////////////////
-        
-            if(moviecategory.length == 0)
-                res.status(404).send(`The Movie category ${req.params} was not found`);  
-    
-                res.send(moviecategory);   //if you find the year then send it to the user
-            
-            });
-
+                var inner=0;
+                
+                var category = req.params.categories;
+                for (i=0; i < csvarray.length; i++){
+                    if (csvarray[i]['categories'] == category){
+                        var prevlength = list2.length;
+                        next();
+                            if(prevlength != list2.length){
+                                list2[o--] = csvarray[i]['categories'];
+                            }
+                        }
+                        
+                    }
+                
+                if(list2.length == 0){
+                    return res.status(404).send(`The Movie category ${req.params} was not found`);  
+                }
+                
+                    return res.send(list2);   //if you find the year then send it to the user
+                
+        });
+        app.get('/api/movies/winners/:winner',(req, next)=>{
+            var Trues = req.params.winner;
+            if(csvarray[o]['winners'] == Trues){
+                list2[o++];
+            }
+        });
 
             //FUTURE IDEAS: Modify this code to find all entites that start with a certain letter
             //example /api/movies/entities/E shows all entities that start with an E
@@ -158,21 +191,50 @@ app.get('/api/movies',(req, res) => {
                 
                     if(moviecategory.length == 0)
                         res.status(404).send(`The Movie oscar winner ${req.params} was not found`);  
-            
-                        res.send(moviecategory);   //if you find the year then send it to the user
+                        
+                            res.send(moviecategory);   //if you find the year then send it to the user
+                        
                     
                     });           
                 //if multiple entities have the same name it will delete one at a time
-                app.delete('/api/movies/entities/:entity',(req,res)=>{
-                    const entit  = csvarray.find( c=> c.entity=== req.params.entity);
+                //Singleton
+                app.delete('/api/movie/entity/:entity',(req,res)=>{
+                    const entit  = csvarray.find( c=> c.entity === req.params.entity);
                     if(!entit) res.status(404).send('incorrect');
                     var i;
                     for(i = 0; i <csvarray.length; i++){
                         const index = csvarray.indexOf(entit);
                         csvarray.splice(index,1);    
                     }
+                    //Singleton
                     res.send(entit);
                 });
+                //if multiple entities have the same name it will delete one at a time
+                //collection
+                app.delete('/api/movies/entities/:entity',(req,res)=>{
+                    const entit  = csvarray.find( c=> c.entity === req.params.entity);
+                    if(!entit) res.status(404).send('incorrect');
+                    var i;
+                    const list = [];
+                    for(i = 0; i <csvarray.length; i++){
+                        const entit  = csvarray.find( c=> c.entity === req.params.entity);
+                        if(entit!=null){
+                            list[i] = entit;
+                        }
+                        const index = csvarray.indexOf(entit);
+                        csvarray.splice(index,1);    
+                    }
+                    //collection return
+                    res.send(list);
+                });
+                //app.post('/api/movies', (req, res) => {
+                 //   const {error} = validate
+
+                //    if (error) {
+                //        res.status(400).send(error.details[0].messsage);
+                //        return;
+                //    }
+                //}
                   //delete from the array  not the csv file
                   //1. finding specific object
                   //2. update object 
@@ -191,4 +253,4 @@ app.get('/api/movies',(req, res) => {
                   //1. add object to array
                   //2. return the updated array
                   //Jordan 
-                  //
+                  // 
