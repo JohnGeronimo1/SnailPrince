@@ -4,27 +4,17 @@ const app = express();  //represents application has GET, POST, PUT, DELETE
 const papa = require('papaparse');
 const fs = require("fs");
 const file = fs.readFileSync('Oscar_Winner_data_csv.csv',"utf8");
-
-//const file = fs.readFileSync('test.csv',"utf8");    //USE THIS ONLY FOR TESTING
+const list2 =[];
+const o = 0;
 var i;
 var index = 0;
-/*
-Before running this code you must install joi and express
-1. If in visual code studio run terminal
-2.  npm init 
-3. now to install express run: npm install express
-4. now to install joi run: npm install joi
-5. now to install papa parse run: npm install papaparse
-6. Now to test the app run: node app
--Sharon
-*/
-
+var inner = 0;
+var list = [];
 app.use(express.json());
-
 //port is dynamically asssigned
-const port =process.env.PORT || 3000;   //enviromental variable is port otherwise assign 3000
+//enviromental variable is port otherwise assign 3000
+const port = process.env.PORT || 3000;   //enviromental variable is port otherwise assign 3000
 const csvrows = {}; //used to hold the JSON objects in the csv
-
 //parse the csv file using papa parse
 papa.parse(file, {
     header: true,
@@ -35,23 +25,14 @@ papa.parse(file, {
         csvrows.meta = results.meta;
     }
 })
-
 //create an array from the objects fromt the csv file
 const csvarray = csvrows.data.map ( row => {
     const {year,category,winner,entity } = row;
     return {year,category,winner,entity}
 })
-const list2 =[];
-const o = 0;
-//test that they printed correctly
-/*for(i =0; i< csvarray.length; i++)
-{
-console.log(csvarray[i]);
-}*/
-
 function findElementArrayNumber(arr, typecategory, typevalue) {
-    var list =[];
-    var inner=0;
+    list =[];
+    inner=0;
     for (i=0; i < arr.length; i++)
      {
     if (arr[i][typecategory] == typevalue)
@@ -61,216 +42,120 @@ function findElementArrayNumber(arr, typecategory, typevalue) {
 
        return list;
 }
-function singletonResponse(arr){
-    //create one instance only
-    //send json reponse
-    //defines getiInstance()
-    //sample
-     //var Singleton = (function () {
-//    var instance;
- 
-//    function createInstance() {
-//        var object = new Object("I am the instance");
-//        return object;
-//    }
- 
-//   return {
-//        getInstance: function () {
-//            if (!instance) {
-//                instance = createInstance();
-//            }
-//            return instance;
-//        }
-//    };
-//})();
- 
-//function run() {
- 
-//    var instance1 = Singleton.getInstance();
-//    var instance2 = Singleton.getInstance();
- 
-//   alert("Same instance? " + (instance1 === instance2));  
-//}
-}
 //can be used to locate strings within the csv arary/file
 function findElementArrayString(arr, typecategory, typevalue) {
-    var list2 =[];
-    var inner=0;
+    list =[];
+    inner=0;
     for (i=0; i < arr.length; i++)
      {
            if ((arr[i][typecategory]).localeCompare(typevalue) == 0)
-             list2[inner++] = arr[i];
+             list[inner++] = arr[i];
     }
-       return list2;
+       return list;
 }
-//refactor attempt 1
-function deleted(entit, type){
-    if(type == "single"){
-        index = csvarray.indexOf(entit);
-        csvarray.splice(index,1); 
-        return entit;
-    }
-    else if(type = "collection"){
-        index = csvarray.indexOf(entit);
-        csvarray.splice(index,1); 
-        //collection return
-        return entit;
-    }
+//function to help redundency in both collection and singleton delete
+function deleted(entit){
+    index = csvarray.indexOf(entit);
+    csvarray.splice(index,1); 
+    return entit;
 }
-
-
-
 //used to return all the elements in the csv file (Its a collection endpoint)
 app.get('/api/movies',(req, res) => {
     res.send(csvarray);
+});
+//Sends a message in terminal to verify that a server is up and running
+//NOTE: Ensure to use correct port name when connecting on POSTMAN
+//Example: http://localhost:3000/api/movies
+app.listen(port,()=> console.log(`Listening on port ${port}...`));
+app.get('/api/movies/years/:year',(req,res)=>{
+    var movieyear = findElementArrayNumber(csvarray, "year", req.params.year);
+    if(!movieyear)  //404 not found
+    { res.status(404).send('The Movie year was not found'); }  //if year is not in array 404 display msg
+        res.send(movieyear);   //if you find the year then send it to the user
     });
-
-    //Sends a message in terminal to verify that a server is up and running
-    //NOTE: Ensure to use correct port name when connecting on POSTMAN
-    //Example: http://localhost:3000/api/movies
-    app.listen(port,()=> console.log(`Listening on port ${port}...`));
-
-
-    app.get('/api/movies/years/:year',(req,res)=>{
-        // returns an array of all the movies that fit this year
-        //FUTURE IDEA: Check that is has also won an ocscar!
-        var movieyear = findElementArrayNumber(csvarray, "year", req.params.year);
-
-        //TEST ONLY DO NOT INCLUDE IN FINAL CODE //////////////////
-        console.log("\nThis is what I found!\n");
-         //TEST ONLY DO NOT INCLUDE IN FINAL CODE ///////////////////////
-    
-        if(!movieyear)  //404 not found
-           { res.status(404).send('The Movie year was not found'); }  //if year is not in array 404 display msg
-            res.send(movieyear);   //if you find the year then send it to the user
-        });
-        app.get('/api/movies/categories/:category',(req,res, next)=>{
-            // returns an array of all the movies that fit this year
-            //FUTURE IDEA: Check that is has also won an ocscar!
-                var inner=0;
-                
-                var category = req.params.categories;
-                for (i=0; i < csvarray.length; i++){
-                    if (csvarray[i]['categories'] == category){
-                        var prevlength = list2.length;
-                        next();
-                            if(prevlength != list2.length){
-                                list2[o--] = csvarray[i]['categories'];
-                            }
-                        }
-                        
-                    }
-                
-                if(list2.length == 0){
-                    return res.status(404).send(`The Movie category ${req.params} was not found`);  
-                }
-                
-                    return res.send(list2);   //if you find the year then send it to the user
-                
-        });
-        app.get('/api/movies/winners/:winner',(req, next)=>{
-            var Trues = req.params.winner;
-            if(csvarray[o]['winners'] == Trues){
-                list2[o++];
+app.get('/api/movies/categories/:category',(req,res, next)=>{
+    inner=0;
+    var category = req.params.categories;
+    for (i=0; i < csvarray.length; i++){
+        if (csvarray[i]['categories'] == category){
+            var prevlength = list2.length;
+            next();
+            if(prevlength != list2.length){
+                list[o--] = csvarray[i]['categories'];
             }
-        });
+        } 
+    }
+    if(list2.length == 0){
+        return res.status(404).send(`The Movie category ${req.params} was not found`);  
+    }
+    return res.send(list2);   //if you find the year then send it to the user
+});
+app.get('/api/movies/winners/:winner',(req, next)=>{
+    var Trues = req.params.winner;
+    if(csvarray[o]['winners'] == Trues){
+        list2[o++];
+    }
+});
+//FUTURE IDEAS: Modify this code to find all entites that start with a certain letter
+//example /api/movies/entities/E shows all entities that start with an E
+app.get('/api/movies/entities/:entity',(req,res)=>{
+    var moviecategory = findElementArrayString(csvarray, "entity", req.params.entity);
+    if(moviecategory.length == 0){
+        res.status(404).send(`The Movie entity ${req.params} was not found`);  
+    }
+    res.send(moviecategory);   //if you find the year then send it to the user
+});
+app.get('/api/movies/winners/:winner',(req,res)=>{
+    var moviecategory = findElementArrayString(csvarray, "winner", req.params.winner);
+    if(moviecategory.length == 0){
+        res.status(404).send(`The Movie oscar winner ${req.params} was not found`);  
+    }
+    res.send(moviecategory);   //if you find the year then send it to the user
+});           
+//Singleton delete
+app.delete('/api/movie/entity/:entity',(req,res)=>{
+    const entit = csvarray.find( c=> c.entity === req.params.entity);
+    if(!entit) res.status(404).send('incorrect');
+    list = [];
+    list = deleted(entit);
+    res.send(list);
+});
+//collection delete
+app.delete('/api/movies/entities/:entity',(req,res)=>{
+    const entit  = csvarray.find( c=> c.entity === req.params.entity);
+    if(!entit) res.status(404).send('incorrect');
+    const list = [];
+    for(i = 0; i <csvarray.length; i++){
+        const entit  = csvarray.find( c=> c.entity === req.params.entity);
+        if(entit!=null){
+            list[i] = deleted(entit);  
+        }
+    }
+    //collection return
+    res.send(list);
+});
+app.post('/api/movies', (req, res) => {
+    const movie = {                    
+        year: req.params.year,
+        category: req.params.category,
+        winner: req.params.winner,
+        entity: req.params.entity
+    };
+    movies.push(movie);
+    var length = csvarray.length;
+    csvarray[length] = movie;
+    //Singleton
+    res.send(movie);
+});
+//put request updating the array 
+//1. finding specific object
+//2. update object 
+//3. update the array
+//Leena
+//
 
-            //FUTURE IDEAS: Modify this code to find all entites that start with a certain letter
-            //example /api/movies/entities/E shows all entities that start with an E
-            app.get('/api/movies/entities/:entity',(req,res)=>{
-                // returns an array of all the movies that fit this year
-                //FUTURE IDEA: Check that is has also won an ocscar!
-                var moviecategory = findElementArrayString(csvarray, "entity", req.params.entity);
-        
-                //TEST ONLY DO NOT INCLUDE IN FINAL CODE //////////////////
-                console.log("\n  api/movies/entities/:entity  \n");
-                 //TEST ONLY DO NOT INCLUDE IN FINAL CODE ///////////////////////
-            
-                if(moviecategory.length == 0)
-                    res.status(404).send(`The Movie entity ${req.params} was not found`);  
-        
-                    res.send(moviecategory);   //if you find the year then send it to the user
-                
-                });
-
-                //FUTURE IDEAS: Modify this code to find all movies that are true or false regaurdless of how the user capitalizes them
-            //example /api/movies/entities/true shows all movies that are True
-                app.get('/api/movies/winners/:winner',(req,res)=>{
-                    // returns an array of all the movies that fit this year
-                    //FUTURE IDEA: Check that is has also won an ocscar!
-                    var moviecategory = findElementArrayString(csvarray, "winner", req.params.winner);
-            
-                    //TEST ONLY DO NOT INCLUDE IN FINAL CODE //////////////////
-                    console.log("\n  /api/movies/winners/:winner  \n");
-                     //TEST ONLY DO NOT INCLUDE IN FINAL CODE ///////////////////////
-                
-                    if(moviecategory.length == 0)
-                        res.status(404).send(`The Movie oscar winner ${req.params} was not found`);  
-                        
-                            res.send(moviecategory);   //if you find the year then send it to the user
-                        
-                    
-                    });           
-                //if multiple entities have the same name it will delete one at a time
-                //Singleton
-                
-                app.delete('/api/movie/entity/:entity',(req,res)=>{
-                    const entit = csvarray.find( c=> c.entity === req.params.entity);
-                    const type = "single";
-                    if(!entit) res.status(404).send('incorrect');
-                    var list = [];
-                    //sends singleton
-                    list = deleted(entit, type);
-                    res.send(list);
-                });
-                //if multiple entities have the same name it will delete one at a time
-                //collection
-                app.delete('/api/movies/entities/:entity',(req,res)=>{
-                    const entit  = csvarray.find( c=> c.entity === req.params.entity);
-                    if(!entit) res.status(404).send('incorrect');
-                    const list = [];
-                    const type = "collection";
-                    for(i = 0; i <csvarray.length; i++){
-                        const entit  = csvarray.find( c=> c.entity === req.params.entity);
-                        if(entit!=null){
-                            list[i] = deleted(entit,type);  
-                        }
-                    }
-                    //collection return
-                    res.send(list);
-                });
-                app.post('/api/movies', (req, res) => {
-                    const movie = {
-                        
-                        year: req.params.year,
-                        category: req.params.category,
-                        winner: req.params.winner,
-                        entity: req.params.entity
-                    };
-                    movies.push(movie);
-                    var length = csvarray.length;
-                    csvarray[length] = movie;
-                    //Singleton
-                    res.send(movie);
-                });
-
-                
-                  //delete from the array  not the csv file
-                  //1. finding specific object
-                  //2. update object 
-                  //3. update the array
-                  //JOHN Claimed 
-                  //-research how to make branches
-
-                  //put request updating the array 
-                  //1. finding specific object
-                  //2. update object 
-                  //3. update the array
-                  //Leena
-                  //
-
-                  //POST request : adding something to csv array
-                  //1. add object to array
-                  //2. return the updated array
-                  //Jordan 
-                  // 
+//POST request : adding something to csv array
+//1. add object to array
+//2. return the updated array
+//Jordan 
+// 
