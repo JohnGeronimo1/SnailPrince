@@ -4,8 +4,10 @@ const app = express();  //represents application has GET, POST, PUT, DELETE
 const papa = require('papaparse');
 const fs = require("fs");
 const file = fs.readFileSync('Oscar_Winner_data_csv.csv',"utf8");
-//const file = fs.readFileSync('test.csv',"utf8");    //USE THIS ONLY FOR TESTING
 
+//const file = fs.readFileSync('test.csv',"utf8");    //USE THIS ONLY FOR TESTING
+var i;
+var index = 0;
 /*
 Before running this code you must install joi and express
 1. If in visual code studio run terminal
@@ -42,7 +44,7 @@ const csvarray = csvrows.data.map ( row => {
 const list2 =[];
 const o = 0;
 //test that they printed correctly
-/*for(var i =0; i< csvarray.length; i++)
+/*for(i =0; i< csvarray.length; i++)
 {
 console.log(csvarray[i]);
 }*/
@@ -50,7 +52,7 @@ console.log(csvarray[i]);
 function findElementArrayNumber(arr, typecategory, typevalue) {
     var list =[];
     var inner=0;
-    for (var i=0; i < arr.length; i++)
+    for (i=0; i < arr.length; i++)
      {
     if (arr[i][typecategory] == typevalue)
        { list[inner++] = arr[i];        //copy the element to the list and increament to next spot in list
@@ -94,14 +96,27 @@ function singletonResponse(arr){
 function findElementArrayString(arr, typecategory, typevalue) {
     var list2 =[];
     var inner=0;
-    for (var i=0; i < arr.length; i++)
+    for (i=0; i < arr.length; i++)
      {
            if ((arr[i][typecategory]).localeCompare(typevalue) == 0)
              list2[inner++] = arr[i];
     }
        return list2;
 }
-
+//refactor attempt 1
+function deleted(entit, type){
+    if(type == "single"){
+        index = csvarray.indexOf(entit);
+        csvarray.splice(index,1); 
+        return entit;
+    }
+    else if(type = "collection"){
+        index = csvarray.indexOf(entit);
+        csvarray.splice(index,1); 
+        //collection return
+        return entit;
+    }
+}
 
 
 
@@ -198,43 +213,48 @@ app.get('/api/movies',(req, res) => {
                     });           
                 //if multiple entities have the same name it will delete one at a time
                 //Singleton
+                
                 app.delete('/api/movie/entity/:entity',(req,res)=>{
-                    const entit  = csvarray.find( c=> c.entity === req.params.entity);
+                    const entit = csvarray.find( c=> c.entity === req.params.entity);
+                    const type = "single";
                     if(!entit) res.status(404).send('incorrect');
-                    var i;
-                    for(i = 0; i <csvarray.length; i++){
-                        const index = csvarray.indexOf(entit);
-                        csvarray.splice(index,1);    
-                    }
-                    //Singleton
-                    res.send(entit);
+                    var list = [];
+                    //sends singleton
+                    list = deleted(entit, type);
+                    res.send(list);
                 });
                 //if multiple entities have the same name it will delete one at a time
                 //collection
                 app.delete('/api/movies/entities/:entity',(req,res)=>{
                     const entit  = csvarray.find( c=> c.entity === req.params.entity);
                     if(!entit) res.status(404).send('incorrect');
-                    var i;
                     const list = [];
+                    const type = "collection";
                     for(i = 0; i <csvarray.length; i++){
                         const entit  = csvarray.find( c=> c.entity === req.params.entity);
                         if(entit!=null){
-                            list[i] = entit;
+                            list[i] = deleted(entit,type);  
                         }
-                        const index = csvarray.indexOf(entit);
-                        csvarray.splice(index,1);    
                     }
                     //collection return
                     res.send(list);
                 });
-                //app.post('/api/movies', (req, res) => {
-                 //   const {error} = validate
+                app.post('/api/movies', (req, res) => {
+                    const movie = {
+                        
+                        year: req.params.year,
+                        category: req.params.category,
+                        winner: req.params.winner,
+                        entity: req.params.entity
+                    };
+                    movies.push(movie);
+                    var length = csvarray.length;
+                    csvarray[length] = movie;
+                    //Singleton
+                    res.send(movie);
+                });
 
-                //    if (error) {
-                //        res.status(400).send(error.details[0].messsage);
-                //        return;
-                //    }
-                //}
+                
                   //delete from the array  not the csv file
                   //1. finding specific object
                   //2. update object 
