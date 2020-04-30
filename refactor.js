@@ -8,17 +8,14 @@ const axios = require('axios');                     //needed to gather data from
 const CreateUrl = require('./util').CreateUrl;      // the ./ means look for util in a different location at the same current level
 const Create_IMDB_URL = require('./util').Create_IMDB_URL;
 
-
 const config ={
     host: 'localhost',
     user: 'root',
     database: 'moviesdata1' ,
     password: 'sqlDoggo99'
   }
-  
 
-
-class Database {
+  class Database {
     constructor( config ) {
         this.connection = mysql.createConnection( config );
     }
@@ -41,39 +38,7 @@ class Database {
         } );
     }
 }
-
-
-//singleton endpoint for year
-app.get('/api/database/movie/year/:year',(req, res) => {
-    /*sql will be a string that holds the command to query the database: SELECT * means choose the entire row
-    FROM oscar_winner_data_csv means we will grabing the data from the oscar_winner_data_csv table in the database
-    WHERE year = ${req.params.year}` means we are only interested in the rows where the year is equal to what the user entered in "/:year"
-    */
-   database = new Database (config);
-    let sql = `SELECT * FROM oscar_winner_data_csv WHERE year = ? LIMIT 0,1 `; //` this is the symbol under the ~
-    database.query(sql, req.params.year ).then(result => {
-        console.log(result);
-        res.send(result);
-        database.close();
-        res.end();
-    });//end of query 
-    });//end of app.get for years
-
-//Collection endpoint for year
-app.get('/api/database/movies/years/:year',(req, res) => {
-    //sql will be a string that holds the command to query the database: SELECT * means choose the entire row
-    //FROM oscar_winner_data_csv means we will grabing the data from the oscar_winner_data_csv table in the database
-    //WHERE year = ${req.params.year}` means we are only interested in the rows where the year is equal to what the user entered in "/:year"
-    database = new Database (config);
-    let sql = `SELECT * FROM oscar_winner_data_csv WHERE year = ?`; //` this is the symbol under the ~
-    database.query(sql, req.params.year ).then(result => {
-        console.log(result);
-        res.send(result);
-        database.close();
-    });//end of query 
-    });//end of app.get for years
-
-
+  
 /*
 Before running this code you must install joi and express
 1. If in visual code studio run terminal
@@ -219,20 +184,63 @@ get_database_imdb_url();
       });
 })*/
 
+  //singleton endpoint for year
+app.get('/api/database/movie/year/:year',(req, res) => {
+    /*sql will be a string that holds the command to query the database: SELECT * means choose the entire row
+    FROM oscar_winner_data_csv means we will grabing the data from the oscar_winner_data_csv table in the database
+    WHERE year = ${req.params.year}` means we are only interested in the rows where the year is equal to what the user entered in "/:year"
+    */
 
-    //POST Request
-app.post('/api/database/movie/post',(req, res) => {
-   /* let sql = `INSERT INTO oscar_winner_data_csv VALUES(?, ?, ?, ?)`; 
-       db.query(sql, (error,result ) => {
-        if(error) throw error;
+   database = new Database (config);
+    let sql = `SELECT * FROM oscar_winner_data_csv WHERE year = ? LIMIT 0,1 `; //` this is the symbol under the ~
+    database.query(sql, req.params.year ).then(result => {
         console.log(result);
         res.send(result);
-       });*/
+        database.close();
+        res.end();
+    });//end of query 
+    });//end of app.get for years
 
+//Collection endpoint for year
+app.get('/api/database/movies/years/:year',(req, res) => {
+    //sql will be a string that holds the command to query the database: SELECT * means choose the entire row
+    //FROM oscar_winner_data_csv means we will grabing the data from the oscar_winner_data_csv table in the database
+    //WHERE year = ${req.params.year}` means we are only interested in the rows where the year is equal to what the user entered in "/:year"
+    database = new Database (config);
+    let sql = `SELECT * FROM oscar_winner_data_csv WHERE year = ?`; //` this is the symbol under the ~
+    database.query(sql, req.params.year ).then(result => {
+        console.log(result);
+        res.send(result);
+        database.close();
+    });//end of query 
+    });//end of app.get for years
+
+ 
+    //Collection endpoint for a date range function
+    //purpose: returns all the movies that occur within the data range
+app.get('/api/database/movies/years/:year1/:year2',(req, res) => {
+    //params is an array containg the parameters from the get request
+    //sql will be a string that holds the command to query the database: SELECT * means choose the entire row
+    //FROM oscar_winner_data_csv means we will grabing the data from the oscar_winner_data_csv table in the database
+    //WHERE year BETWEEN ? and ?` means we are only interested in the rows where the year is between what the user entered in "/:year1 and /:year2"
+    //ORDER BY  year ASC, entity ASC means we are ordering the results by their entity name and year in ascending order
+    database = new Database (config);
+    params = [req.params.year1, req.params.year2];
+    let sql = `SELECT * FROM oscar_winner_data_csv WHERE year BETWEEN ? AND ? ORDER BY year ASC, entity ASC;`; 
+    database.query(sql, params ).then(result => {
+        console.log(result);
+        res.send(result);
+        database.close();
+    });//end of query 
+    });//end of app.get for date range function
+
+    //POST Request
+    //Purpose: Allows the user to insert a new row into the database. User can only insert the year, category, winner, and entity.
+app.post('/api/database/movie/post',(req, res) => {
        database = new Database (config);
-     //  let params = [req.body.year , `${req.body.category}` , `${req.body.winner}` , `${req.body.entity}`];
-       let sql = `INSERT INTO oscar_winner_data_csv VALUES( ${ req.body.year}, '${req.body.category}', '${req.body.winner}', '${req.body.entity}')`; 
-       database.query(sql).then(result => {
+       let params = [req.body.year , `${req.body.category}` , `${req.body.winner}` , `${req.body.entity}`]; //user can only provide the year,the category,the name of the entity, whether an award is won, 
+     let sql = `INSERT INTO oscar_winner_data_csv (year, category, winner, entity) VALUES(?,?,?,?)`;//inserts specifically into the year,category, winner, entity columns
+       database.query(sql,params).then(result => {  //this connects to the database, passes the paramters into the sql command and closes the connection
            console.log(result);
            res.send(result);
            database.close();
@@ -241,33 +249,59 @@ app.post('/api/database/movie/post',(req, res) => {
  
 
 //PUT Request
-//searchs for the matching entry in the database based on entity
+//searchs for the matching entry in the database based on entity. Update the year, category, winner columns.
 app.put('/api/database/movie/put',(req, res) => {
-    /*let sql = `UPDATE oscar_winner_data_csv SET year = ${ req.body.year}, category = '${req.body.category}', winner = '${req.body.winner}' WHERE entity = '${req.body.entity}'`; 
-       db.query(sql, (error,result ) => {
-        if(error) throw error;
-        console.log(result);
-        res.send(result);
-       });*/
-
        database = new Database (config);
-      // params=[ ${req.body.year}, '${req.body.category}' , '${req.body.category}','${req.body.winner}'];
-       let sql = `UPDATE oscar_winner_data_csv SET year = ${ req.body.year}, category = '${req.body.category}', winner = '${req.body.winner}' WHERE entity = '${req.body.entity}'`; 
-    database.query(sql).then(result => {
+       params=[ req.body.year, `${req.body.category}` , `${req.body.winner}`,`${req.body.entity}`];
+       let sql = `UPDATE oscar_winner_data_csv SET year = ?, category = ?, winner = ? WHERE entity = ?`; 
+    database.query(sql,params).then(result => {
         console.log(result);
         res.send(result);
         database.close();
-    });//end of app.get for years
+    });//end of query
 });
+
     //DELETE Request
-//searchs for the matching entry in the database based on entity and deletes the rows
+//searchs for the matching entry in the database based on entity. It then deletes the corresponding rows.
 app.delete('/api/database/movie/delete',(req, res) => {
-    let sql = `DELETE FROM oscar_winner_data_csv  WHERE entity = '${req.body.entity}'`; 
-       db.query(sql, (error,result ) => {
-        if(error) throw error;
+    database = new Database (config);
+    params=[`${req.body.entity}`];
+    let sql = `DELETE FROM oscar_winner_data_csv  WHERE entity = ? LIMIT 1`; 
+    database.query(sql,params).then(result => {
         console.log(result);
         res.send(result);
-       });
+        database.close();
+    });//end of query
+    });//end of app.delete 
+  
+        //DELETE Request
+        //Singleton Delete request. Not a collection because that would endanger the database
+//searchs for the matching entry in the database based on the year. It then deletes the corresponding rows.
+app.delete('/api/database/movie/delete',(req, res) => {
+    database = new Database (config);
+    let params = [req.body.year , `${req.body.category}` , `${req.body.winner}` , `${req.body.entity}`]; //user can only provide the year,the category,the name of the entity, whether an award is won,
+    let sql = `DELETE FROM oscar_winner_data_csv  WHERE year = ? AND category = ? AND winner = ? AND entity = ? LIMIT 1`; 
+    database.query(sql,params).then(result => {
+        console.log(result);
+        res.send(result);
+        database.close();
+    });//end of query
+    });//end of app.delete 
+
+
+//DELETE Request
+//Collection Delete request. Remeber collection delete request can delete rows of data it can endanger the database. Not for user use.
+//Use: Strictly for developers
+//searchs for the matching entry in the database based on the year. It then deletes the corresponding rows.
+app.delete('/api/database/movies/delete',(req, res) => {
+    database = new Database (config);
+    let params = [req.body.year , `${req.body.category}` , `${req.body.winner}` , `${req.body.entity}`]; //user can only provide the year,the category,the name of the entity, whether an award is won,
+    let sql = `DELETE FROM oscar_winner_data_csv  WHERE year = ? AND category = ? AND winner = ? AND entity = ? `; 
+    database.query(sql,params).then(result => {
+        console.log(result);
+        res.send(result);
+        database.close();
+    });//end of query
     });//end of app.delete 
 
 //used to return all the elements in the csv table in the database (Its a collection endpoint)
