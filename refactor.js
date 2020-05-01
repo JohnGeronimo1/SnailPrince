@@ -1,10 +1,10 @@
 const joi = require('joi');
 const express = require('express');                 //Used to make GET, POST, DELETE requests
-const app = express();                              //represents application has GET, POST, PUT, DELETE
+const app = express();                              //Represents application has GET, POST, PUT, DELETE
 const mysql = require('mysql');                     //Needed to access mysql database
-const axios = require('axios');                     //needed to gather data from the OMDB API
+const axios = require('axios');                     //Needed to gather data from the OMDB API
 
-//the following imports grab the functions from the util file
+//The following imports grab the functions from the util file
 const CreateUrl = require('./util').CreateUrl;      // the ./ means look for util in a different location at the same current level
 const Create_IMDB_URL = require('./util').Create_IMDB_URL;
 
@@ -13,12 +13,12 @@ const config ={
     user: 'root',
     database: 'moviesdata1' ,
     password: 'sqlDoggo99'
-  }
+}
 
   class Database {
     constructor( config ) {
         this.connection = mysql.createConnection( config );
-    }
+  }
     query( sql, args ) {
         return new Promise( ( resolve, reject ) => {
             this.connection.query( sql, args, ( err, rows ) => {
