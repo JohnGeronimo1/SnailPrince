@@ -5,14 +5,14 @@ const mysql = require('mysql');                     //Needed to access mysql dat
 const axios = require('axios');                     //Needed to gather data from the OMDB API
 
 //The following imports grab the functions from the util file
-const CreateUrl = require('./util').CreateUrl;      // the ./ means look for util in a different location at the same current level
+const CreateUrl = require('./util').CreateUrl;      // The ./ means look for util in a different location at the same current level
 const Create_IMDB_URL = require('./util').Create_IMDB_URL;
 
 const config ={
-    host: 'localhost',
-    user: 'root',
-    database: 'moviesdata1' ,
-    password: 'sqlDoggo99'
+    host:        'localhost',
+    user:             'root',
+    database:  'moviesdata1',
+    password:   'sqlDoggo99'
 }
 
   class Database {
