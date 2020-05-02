@@ -1,5 +1,5 @@
-const joi = require('joi');
-const express = require('express');                 //Used to make GET, POST, DELETE requests
+const joi = require('joi');                         //Required to prove validation of JS objects.
+const express = require('express');                 //Used to make GET, POST, PUT, DELETE requests
 const app = express();                              //Represents application has GET, POST, PUT, DELETE
 const mysql = require('mysql');                     //Needed to access mysql database
 const axios = require('axios');                     //Needed to gather data from the OMDB API
