@@ -318,7 +318,7 @@ app.get('/api/database/movies',(req, res) => {
 //singleton endpoint for category
    //used to return 1 the row that has matching a category in the csv table in the database 
      app.get('/api/database/movie/category/:category',(req,res)=>{
-            let param = ['${req.params.category}'];
+            let param = [`${req.params.category}`];
             database = new Database (config);
             let sql = `SELECT * FROM oscar_winner_data_csv WHERE category =  ? LIMIT 1`; //Grabs 1 matching category
             database.query(sql,param ).then(result => {
@@ -332,7 +332,7 @@ app.get('/api/database/movies',(req, res) => {
 
          //used to return all the elements that have matching a category in the csv table in the database (Its a collection endpoint)
 app.get('/api/database/movies/categories/:category',(req,res)=>{
-    let param = ['${req.params.entity}'];
+    let param = [`${req.params.entity}`];
      database = new Database (config);
   let sql = `SELECT * FROM oscar_winner_data_csv WHERE category = ?`; //Grabs all the matching categories 
        database.query(sql,param ).then(result => {
@@ -346,7 +346,7 @@ app.get('/api/database/movies/categories/:category',(req,res)=>{
 //singleton endpoint for entity
     //used to return all the elements that have matching a entity in the csv table in the database    
     app.get('/api/database/movie/entity/:entity',(req,res)=>{
-         let param = ['${req.params.entity}'];
+         let param = [`{req.params.entity}`];
              database = new Database (config);
             let sql = `SELECT * FROM oscar_winner_data_csv WHERE entity =  ? LIMIT 1`; //Grabs 1 matching entity
             database.query(sql,param ).then(result => {
