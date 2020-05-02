@@ -332,7 +332,7 @@ app.get('/api/database/movies',(req, res) => {
 
          //used to return all the elements that have matching a category in the csv table in the database (Its a collection endpoint)
 app.get('/api/database/movies/categories/:category',(req,res)=>{
-    let param = [`${req.params.entity}`];
+    let param = [`${req.params.category}`];
      database = new Database (config);
   let sql = `SELECT * FROM oscar_winner_data_csv WHERE category = ?`; //Grabs all the matching categories 
        database.query(sql,param ).then(result => {
