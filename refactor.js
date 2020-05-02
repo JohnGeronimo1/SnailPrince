@@ -346,7 +346,7 @@ app.get('/api/database/movies/categories/:category',(req,res)=>{
 //singleton endpoint for entity
     //used to return all the elements that have matching a entity in the csv table in the database    
     app.get('/api/database/movie/entity/:entity',(req,res)=>{
-         let param = [`{req.params.entity}`];
+         let param = [`${req.params.entity}`];
              database = new Database (config);
             let sql = `SELECT * FROM oscar_winner_data_csv WHERE entity =  ? LIMIT 1`; //Grabs 1 matching entity
             database.query(sql,param ).then(result => {
@@ -360,7 +360,7 @@ app.get('/api/database/movies/categories/:category',(req,res)=>{
  //used to return all the elements that have matching a entity in the csv table in the database (Its a collection endpoint)     
  app.get('/api/database/movies/entities/:entity',(req,res)=>{
      database = new Database (config);
-    let params = [`${req.body.entity}`]; //user can only provide the year,the category,the name of the entity, whether an award is won,
+    let params = [`${req.params.entity}`]; //user can only provide the year,the category,the name of the entity, whether an award is won,
     let sql = `SELECT * FROM oscar_winner_data_csv WHERE entity = ?`; //Grabs all the matching entities 
     database.query(sql,params).then(result => {
         console.log(result);
@@ -373,7 +373,7 @@ app.get('/api/database/movies/categories/:category',(req,res)=>{
  //used to return all the elements that have matching a winner in the csv table in the database (Its a collection endpoint)             
  app.get('/api/database/movies/winners/:winner',(req,res)=>{                 
      database = new Database (config);
-    let params = [`${req.body.winner}`]; //user can only provide the year,the category,the name of the entity, whether an award is won,
+    let params = [`${req.params.winner}`]; //user can only provide the year,the category,the name of the entity, whether an award is won,
   let sql = `SELECT * FROM oscar_winner_data_csv WHERE winner = ?`; //Grabs all the matching winner 
     database.query(sql,params).then(result => {
         console.log(result);
@@ -386,7 +386,7 @@ app.get('/api/database/movies/categories/:category',(req,res)=>{
  //used to return all the elements that have matching a winner in the csv table in the database (Its a collection endpoint)             
  app.get('/api/database/movie/winner/:winner',(req,res)=>{       
     database = new Database (config);
-    let params = [`${req.body.winner}`]; //user can only provide the year,the category,the name of the entity, whether an award is won,
+    let params = [`${req.params.winner}`]; //user can only provide the year,the category,the name of the entity, whether an award is won,
  let sql = `SELECT * FROM oscar_winner_data_csv WHERE winner = ?  LIMIT 1`; //Grabs 1 matching winner
     database.query(sql,params).then(result => {
         console.log(result);
