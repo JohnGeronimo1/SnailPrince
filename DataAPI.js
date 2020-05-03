@@ -57,8 +57,10 @@ class Database{
             });
         });
     }
-}   
-app.use(express.json());    
+}
+
+app.use(express.json());  
+
 /* 
  * async function GetRequest(url)
  * precondition: none
@@ -99,6 +101,18 @@ async function GetRequest(url){
  * @throw {error} if there is an error
  */
 async function Check_database_title(title) {
+
+    //create a variable that holds the connection to the MYSQL database
+    const db= mysql.createConnection(config);
+  
+    //establish a connection to the database we have created
+    db.connect((err)=>
+    {
+        if(err)
+        { throw err;}       //if an error occurs when connectiong to database throw an error
+        console.log("MYSQL connencted!");
+    });
+
     async function get_database_imdb_url(){
         sql = `SELECT imdburl FROM oscar_winner_data_csv WHERE entity = '${title}'`;
         let query= db.query(sql,(error, result) =>{
@@ -111,11 +125,9 @@ async function Check_database_title(title) {
             else{
                 //if null then fill coulumns with null
                 if(result[0].imdburl == null){ 
-                    console.log("\n IMDB_url is null\n\n");
                     var url = CreateUrl(title);         
                     //1. make the omdb call
                     GetRequest(url).then(result =>  {        
-                        console.log( result );
                         //3. Put the result into an UPDATE query for the matching entity update the imdbID,genre,imdbrating, and the runtime.
                         sql = `UPDATE oscar_winner_data_csv SET runtime = '${result.runtime }',  genre = '${result.genre}', imdbID = '${result.imdID}', imdbRating = '${result.imdbrating}' WHERE entity =  '${title}'`; 
                         db.query(sql, (error,result ) => {
@@ -123,7 +135,7 @@ async function Check_database_title(title) {
                                 throw error;
                             }
                         });
-                        return title;
+                        return title;           // return the title to be used in the following query
                     }).then( (title) => {
                         //Now the database contains the updated runtime, genre, imdbID, and imdbRating for the specific movie title.
                         //Now search the movie's imdbID based on the title provided by the user. (WE updated the data in the row so we have to do another query)
@@ -140,22 +152,24 @@ async function Check_database_title(title) {
                                 if(error){
                                     throw error;
                                 }
-                                console.log(result);
-                                console.log(`Update the databse with ${imdb_URL}` );
+                                console.log(`IMDB URL :  ${imdb_URL}` );
                             });
-                        });
+                    });
                     });
                 }
                 else{
-                    console.log(`\nIMDB URL is not null. We have a valid URL for ${title}`);
                     var imdb_URL = result[0].imdburl;
-                    console.log("\nimdburl : "+  imdb_URL );
+                    console.log("\nIMDB URL : "+  imdb_URL );
                 }
             }
         });
     }
     get_database_imdb_url();
 }
+
+//Calls Check_database_title() to get the IMDB url and extra information about a given movie title
+Check_database_title('Army Girl');
+
 /*********************************************************/
 /*              ALL POST FUNCTIONS                       */
 /*********************************************************/
@@ -293,8 +307,9 @@ app.get('/api/database/movies',(req, res) => {
  */
 app.get('/api/database/movie/year/:year',(req, res) => {
     database = new Database (config);
+    param = [req.params.year];
     sql = `SELECT * FROM oscar_winner_data_csv WHERE year = ? LIMIT 0,1 `; //` this is the symbol under the ~
-    database.query(sql, req.params.year ).then(result => {
+    database.query(sql, param).then(result => {
         console.log(result);
         res.send(result);
         database.close();
@@ -312,8 +327,9 @@ app.get('/api/database/movie/year/:year',(req, res) => {
  */ 
 app.get('/api/database/movies/years/:year',(req, res) => {
     database = new Database (config);
+    param = [req.params.year];
     sql = `SELECT * FROM oscar_winner_data_csv WHERE year = ?`;
-    database.query(sql, req.params.year ).then(result => {
+    database.query(sql, param ).then(result => {
         console.log(result);
         res.send(result);
         database.close();
@@ -350,7 +366,7 @@ app.get('/api/database/movie/category/:category',(req,res)=>{
  */ 
 app.get('/api/database/movies/categories/:category',(req,res)=>{
     database = new Database (config);
-    param = [`${req.params.entity}`];
+    param = [`${req.params.category}`];
     sql = `SELECT * FROM oscar_winner_data_csv WHERE category = ?`; //Grabs all the matching categories.
     database.query(sql,param).then(result => {
         console.log(result);
@@ -370,9 +386,9 @@ app.get('/api/database/movies/categories/:category',(req,res)=>{
  */          
 app.get('/api/database/movie/winner/:winner',(req,res)=>{       
     database = new Database (config);
-    params = [`${req.body.winner}`]; //User can only provide the year,the category,the name of the entity, whether an award is won.
+    param = [`${req.params.winner}`]; 
     sql = `SELECT * FROM oscar_winner_data_csv WHERE winner = ?  LIMIT 1`; //Grabs 1 matching winner.
-    database.query(sql,params).then(result => {
+    database.query(sql,param).then(result => {
         console.log(result);
         res.send(result);
         database.close();
@@ -389,9 +405,9 @@ app.get('/api/database/movie/winner/:winner',(req,res)=>{
  */          
 app.get('/api/database/movies/winners/:winner',(req,res)=>{                 
     database = new Database (config);
-    params = [`${req.body.winner}`]; //User can only provide the year,the category,the name of the entity, whether an award is won.
+    param = [`${req.params.winner}`]; //User can only provide the year,the category,the name of the entity, whether an award is won.
     sql = `SELECT * FROM oscar_winner_data_csv WHERE winner = ?`; //Grabs all the matching winners.
-    database.query(sql,params).then(result => {
+    database.query(sql,param).then(result => {
         console.log(result);
         res.send(result);
         database.close();
@@ -407,16 +423,17 @@ app.get('/api/database/movies/winners/:winner',(req,res)=>{
  * @param {res} respond paraamter from express to send data
  */   
 app.get('/api/database/movie/entity/:entity',(req,res)=>{
-    database = new Database (config); 
-    param = [`${req.params.entity}`]; 
-    sql = `SELECT * FROM oscar_winner_data_csv WHERE entity =  ? LIMIT 1`; //Grabs 1 matching entity.
-    database.query(sql,param).then(result => {
-        console.log(result);
-        res.send(result);
-        database.close();
-        res.end();
+    database = new Database (config);
+     param = [`${req.params.entity}`];
+    sql = `SELECT * FROM oscar_winner_data_csv WHERE entity = ? LIMIT 1`; //Grabs 1 matching entity
+   database.query(sql,param ).then(result => {
+       console.log(result);
+       res.send(result);
+       database.close();
+       res.end();
     });
 });
+
 /*
  * app.get('/api/database/movies/entities/:entity',(req,res)=> GET request
  * precondintion: has to be connected to mysql
@@ -427,13 +444,13 @@ app.get('/api/database/movie/entity/:entity',(req,res)=>{
  * @param {res} respond paraamter from express to send data
  */   
 app.get('/api/database/movies/entities/:entity',(req,res)=>{
-    database = new Database (config);
-    params = [`${req.body.entity}`];
-    sql = `SELECT * FROM oscar_winner_data_csv WHERE entity = ?`; //Grabs all the matching entities.
-    database.query(sql,param).then(result => {
-        console.log(result);
-        res.send(result);
-        database.close();
+   database = new Database (config);
+   let params = [`${req.params.entity}`];
+   let sql = `SELECT * FROM oscar_winner_data_csv WHERE entity = ?`; //Grabs all the matching entities 
+   database.query(sql,params).then(result => {
+       console.log(result);
+       res.send(result);
+       database.close();
     });
 });
 /*
