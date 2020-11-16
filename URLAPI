@@ -1,0 +1,54 @@
+const axios = require('axios');                     //needed to gather data from the OMDB API
+
+//FUTURE IDEA:
+//Add code that gets the title from the html and stores it in the title category
+
+//variables to search omdb api
+var api = ' http://www.omdbapi.com/?';
+var searchtitle = 't=';
+var title = 'Avengers';                         //TITLE WILL BE REPLACED BY TITLE GIVEN BY USER *THIS IS A PLACEHOLDER*
+var apikey= '&apikey=f6eeadf6';                 //this api key is unqiuely assigned and necesssary for the api call
+var url = api + searchtitle + title + apikey;
+
+/*async function GetRequest()
+precondition: none
+postconditions: Returns a json object that contains the year,title, and awards info for the movie 
+*/
+  async function GetRequest()
+{
+    const dateinfo =  await axios.get(url).then(response => {return response.data.Year;}) //should wait unitl data is returned by the get request
+    .catch(function(error){
+        console.log(error);
+    });
+
+    const entityinfo =  await axios.get(url).then(response => {return response.data.Title;}) //should wait unitl data is returned by the get request
+    .catch(function(error){
+        console.log(error);
+    });
+
+    const awardinfo =  await axios.get(url).then(response => {return response.data.Awards;}) //should wait unitl data is returned by the get request
+    .catch(function(error){
+        console.log(error);
+    });
+
+    //creates an object with date and title and award nominations
+    var jsonobject = {year: dateinfo, entity:entityinfo, awards: awardinfo  };
+
+    return jsonobject;                        //should get data from the axios response
+}//end of GetRequest
+
+//This prints the result from the OMDB API
+//FUTURE: print the the html page in a nice format
+GetRequest().then(result =>  {console.log( result );})
+
+
+//This line of code gets the full response with all the extra data
+/*
+  axios.get(url).then(function(response)
+    {
+        console.log( response);
+    })
+    .catch(function(error){
+        console.log(error);
+    })
+ */
